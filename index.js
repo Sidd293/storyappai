@@ -16,7 +16,7 @@ const url = require('url')
 // Create a WebSocket server
 const clients = new Map();
 const querystring = require('querystring');
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: process.env.PORT || 8080 });
 
 
 
@@ -222,7 +222,7 @@ app.get('*', (req,res) =>{
 	res.sendFile(path.join(__dirname+'/client/build/index.html'));
 });
 
-const port = 5000;
+const port = process.env.PORT || 5000;
 app.listen(port);
 
 console.log('App is listening on port ' + port);
