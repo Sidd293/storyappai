@@ -113,14 +113,12 @@ connection.connect((err) => {
         const name = req.body.name;
         const pic = req.body.pic;
       
-        // Check if user with given UID already exists in the database
         const query1 = `SELECT * FROM users WHERE uid = ?`;
         pool.query(query1, [uid], (error, results) => {
           if (error) {
             console.error(error);
             res.status(500).send('Error checking for existing user');
           } else if (results.length > 0) {
-            // User already exists, return list of all users
             const query2 = `SELECT uid, name, pic FROM users`;
             pool.query(query2, (error, results) => {
               if (error) {
@@ -131,14 +129,12 @@ connection.connect((err) => {
               }
             });
           } else {
-            // User doesn't exist, add to database
             const query3 = `INSERT INTO users (uid, name, pic) VALUES (?, ?, ?)`;
             pool.query(query3, [uid, name, pic], (error, results) => {
               if (error) {
                 console.error(error);
                 res.status(500).send('Error adding new user');
               } else {
-                // User added successfully, return list of all users
                 const query4 = `SELECT uid, name, pic FROM users`;
                 pool.query(query4, (error, results) => {
                   if (error) {
@@ -154,19 +150,16 @@ connection.connect((err) => {
         });
       });
 
-// Handle WebSocket connections
 wss.on('connection', (ws,req) => {
   console.log('Client connected.');
-  const unique = req.url.split('/')[1]; // Assuming the unique identifier is passed in the connection URL
+  const unique = req.url.split('/')[1];
 
-  // clients.set(unique, ws); 
   console.log("unique",unique)
   const query = url.parse(req.url).query;
   
   const userId = querystring.parse(query).userId;
   ws.userId = userId;
   console.log("userId",userId)
-  // Send all messages to the client when it first connects
   connection.query('SELECT * FROM messages WHERE recipientId = ? OR senderId = ?', [userId,userId], (error, results, fields) => {
     if (error) {
       console.error('Error retrieving messages:', error);
@@ -176,21 +169,16 @@ wss.on('connection', (ws,req) => {
     }
   });
 
-  // Handle incoming messages
   ws.on('message', (message) => {
-    // console.log('Received message:', message);
 
-    // Parse the message JSON
     const newMessage = JSON.parse(message);
 console.log(newMessage)
-    // Insert the message into the MySQL database
     connection.query('INSERT INTO messages SET ?', newMessage, (error, results, fields) => {
       if (error) {
         console.error('Error inserting message:', error);
       } else {
         console.log('Inserted new message with ID', results);
 
-        // Update the message ID and send it back to the client
         newMessage.id = results.insertId;
 
         connection.query('SELECT * FROM messages WHERE recipientId = ? OR senderId = ?', [userId,userId], (error, results, fields) => {
@@ -205,8 +193,6 @@ console.log(newMessage)
     });
 console.log(Array.from(wss.clients).length,"number of clients")
     wss.clients.forEach((client) => {
-        // console.log(client.userId);
-        // Broadcast the message to all clients with the specified recipient ID
         const query = url.parse(client._socket.remoteAddress).query;
         const recipientId = querystring.parse(query).userId;
     console.log("recipientId",client.userId);
@@ -218,7 +204,6 @@ console.log(Array.from(wss.clients).length,"number of clients")
 
   });
 
-  // Handle WebSocket disconnections
   ws.on('close', () => {
     console.log('Client disconnected.');
   });
