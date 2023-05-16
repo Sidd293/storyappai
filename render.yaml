@@ -1,0 +1,12 @@
+services:
+  - name: web
+    buildCommand: npm run build
+    startCommand: node index.js
+    env:
+      - key: PORT
+        value: 5000
+    http:
+      port: 5000
+    tcp:
+      8080: # Websocket Port
+        protocol: http
