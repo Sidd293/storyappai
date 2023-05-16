@@ -16,7 +16,7 @@ const url = require('url')
 // Create a WebSocket server
 const clients = new Map();
 const querystring = require('querystring');
-const wss = new WebSocket.Server({ port: process.env.PORT || 8080 });
+const wss = new WebSocket.Server({ port: process.env.PORT+'1' || 8080 });
 
 
 
